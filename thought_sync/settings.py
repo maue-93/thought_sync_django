@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -122,7 +124,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 """
     model = core.User
-    NOTICE :
-        1 - This is used as default User class in all Apps except core
+    NOTICE : - This is used as default User class in all Apps except core
 """
 AUTH_USER_MODEL = 'core.User'
+
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING' : False,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
+}
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'core.serializers.UserCreateSerializer',
+        'current_user': 'core.serializers.UserSerializer',
+    }
+}

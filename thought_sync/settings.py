@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "core"
+    "core"
 ]
 
 MIDDLEWARE = [
@@ -123,4 +123,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
     NOTICE :
         1 - This is used as default User class in all Apps except core
 """
-# AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = 'core.User'

@@ -8,6 +8,7 @@ django = "*"
 djoser = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 

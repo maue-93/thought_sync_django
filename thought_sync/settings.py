@@ -41,10 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'rest_framework',
     "djoser",
+    "debug_toolbar",
     "core",
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -121,6 +123,15 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+"""
+    Initially created for Django Debug Toolbar
+    TO DO : - change before deployement
+"""
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
 
 """
     model = core.User
@@ -147,3 +158,16 @@ DJOSER = {
         'current_user': 'core.serializers.UserSerializer',
     }
 }
+
+"""
+    Set up Email SMTP
+"""
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'morazare@lafayette.edu'
+EMAIL_HOST_PASSWORD = 'kobqbpcpthiaqrqs'  # Use App Password if you have 2-Step Verification enabled
+

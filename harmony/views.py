@@ -15,3 +15,7 @@ class UserProfileViewSet(ModelViewSet):
         # return UserProfile.objects.select_related("user").all()
     def get_serializer_class(self):
         return UserProfileSerializer
+    
+
+def th ():
+    return 0

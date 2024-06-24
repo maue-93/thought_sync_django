@@ -35,6 +35,8 @@ class WithCreateUpdateTrashTime(models.Model):
         - 
     RELATED FIELDS :
         - mysynchs : model = Synch : synchs created by this user
+        - mystreams : model = Stream : streams created by this user
+        - notes : model = Note : notes created by this user
 """
 class UserProfile (WithCreateUpdateTrashTime):
     id = models.UUIDField(primary_key=True, default=uuid4)
@@ -109,6 +111,7 @@ class Stream (WithCreateUpdateTrashTime):
 """
 class Note (WithCreateUpdateTrashTime):
     stream = models.ForeignKey(Stream, on_delete=models.CASCADE, related_name="notes")
+    sender = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="notes")
 
 # end of Note
 

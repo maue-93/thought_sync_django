@@ -144,6 +144,9 @@ INTERNAL_IPS = [
 """
     model = core.User
     NOTICE : - This is used as default User class in all Apps except core
+
+    RELATED FIELDS :
+        - profile : model = harmony.UserProfile : more info about this user
 """
 AUTH_USER_MODEL = 'core.User'
 

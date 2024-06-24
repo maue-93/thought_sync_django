@@ -10,3 +10,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["user", "user_pk", "bio", "picture"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            self.fields['user_pk'].queryset = User.objects.filter(id=request.user.id)

@@ -8,14 +8,21 @@ from .models import UserProfile
 
 class UserProfileViewSet(ModelViewSet):
     def get_queryset(self): 
-        # select_related added to not repeat queries on user
+        # if super user query all
         if self.request.user.is_superuser:
+            # select_related added to not repeat queries on user
             return UserProfile.objects.select_related("user").all()
+        # if user logged in, query their profile
         return UserProfile.objects.select_related("user").filter(user=self.request.user)
-        # return UserProfile.objects.select_related("user").all()
     def get_serializer_class(self):
         return UserProfileSerializer
     
-
-def th ():
-    return 0
+    # to add a context to use in serializer
+    def get_serializer_context(self):
+        # Pass the request context to the serializer
+        context = super().get_serializer_context()
+        context.update({
+            'request': self.request,
+        })
+        return context
+    

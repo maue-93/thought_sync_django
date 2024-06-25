@@ -2,6 +2,8 @@ from uuid import uuid4
 from django.db import models
 from django.conf import settings
 
+from .validators import image_size_validator
+
 # Create your models here.
 """
     ABSTRACT MODEL = WithCreateUpdateTrashTime
@@ -44,7 +46,7 @@ class UserProfile (WithCreateUpdateTrashTime):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="profile", unique=True)
     birthday = models.DateField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
-    picture = models.ImageField(upload_to="users/pictures")
+    picture = models.ImageField(upload_to="users/pictures", validators=[image_size_validator])
     
 
 # end of UserProfile
@@ -68,7 +70,7 @@ class Synch (WithCreateUpdateTrashTime):
     # the reason why we do not automatically delete the synch if a user delete their account or profile is
     # because there might be others that are still using it
     created_by = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mysynchs")
-    picture = models.ImageField(upload_to="synchs/pictures")
+    picture = models.ImageField(upload_to="synchs/pictures", validators=[image_size_validator])
     
 
 # end of Synch
@@ -145,7 +147,7 @@ class TextNote (WithCreateUpdateTrashTime):
         -  : model =  : 
 """
 class ImageNote (WithCreateUpdateTrashTime):
-    image = models.ImageField(upload_to="notes/images")
+    image = models.ImageField(upload_to="notes/images", validators=[image_size_validator])
     note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name="images")
 
 # end of ImageNote

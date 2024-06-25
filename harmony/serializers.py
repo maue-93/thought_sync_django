@@ -9,7 +9,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user_pk = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user', write_only=True)
     class Meta:
         model = UserProfile
-        fields = ["user", "user_pk", "birthday", "bio", "picture"]
+        fields = ["id", "user", "user_pk", "birthday", "bio", "picture"]
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

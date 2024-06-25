@@ -47,11 +47,13 @@ INSTALLED_APPS = [
     "harmony",
 ]
 
+
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -63,7 +65,7 @@ ROOT_URLCONF = "thought_sync.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -167,7 +169,14 @@ DJOSER = {
     'SERIALIZERS': {
         'user_create': 'core.serializers.UserCreateSerializer',
         'current_user': 'core.serializers.UserSerializer',
-    }
+    },
+
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'auth/users/activation/{uid}/{token}',
+    'EMAIL': {
+        'activation': 'core.emails.CustomActivationEmail',  # Path to your custom email class
+    },
+
 }
 
 """
@@ -179,6 +188,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'morazare@lafayette.edu'
+EMAIL_HOST_USER = 'morazare@lafayette.edu' 
 EMAIL_HOST_PASSWORD = 'kobqbpcpthiaqrqs'  # Use App Password if you have 2-Step Verification enabled
 

@@ -13,6 +13,7 @@ pillow = "*"
 drf-nested-routers = "*"
 channels = "*"
 channels-redis = "*"
+daphne = "*"
 
 [dev-packages]
 

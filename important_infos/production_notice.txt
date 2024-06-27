@@ -18,4 +18,8 @@ there are some packages that we might still need to install on the global
 computer environment to run certain things
     - Redis for example. We might need to run brew install redis or using docker
 
++ When you run "daphne -p 8001 thought_sync.asgi:application", is it working?
+    - if it's working, what is the root of the websocket url?
+
++ 
 

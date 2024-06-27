@@ -153,6 +153,9 @@ INTERNAL_IPS = [
 """
 AUTH_USER_MODEL = 'core.User'
 
+"""
+    set up the rest api stuff
+"""
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING' : False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -160,6 +163,9 @@ REST_FRAMEWORK = {
     ),
 }
 
+"""
+    Authentication with JWT
+"""
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -177,8 +183,9 @@ DJOSER = {
     'EMAIL': {
         'activation': 'core.emails.CustomActivationEmail',  # Path to your custom email class
     },
-
 }
+# the PASSWORD_RESET_TIMEOUT is both for password reset and account validation
+PASSWORD_RESET_TIMEOUT = timedelta(minutes=40).total_seconds()
 
 """
     Set up Email SMTP

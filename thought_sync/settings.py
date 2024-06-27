@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-@g)nzso!o+y%v$8a$b25$nq7abh-rnsyqg%^p-7d4*k8y&xz7j"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'rest_framework',
+    "channels",
     "djoser",
     "debug_toolbar",
     "core",
@@ -79,7 +80,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "thought_sync.wsgi.application"
-
+ASGI_APPLICATION = 'thought_sync.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -182,8 +183,6 @@ DJOSER = {
 """
     Set up Email SMTP
 """
-# settings.py
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -191,3 +190,14 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'morazare@lafayette.edu' 
 EMAIL_HOST_PASSWORD = 'kobqbpcpthiaqrqs'  # Use App Password if you have 2-Step Verification enabled
 
+"""
+    Channel layers set up
+"""
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

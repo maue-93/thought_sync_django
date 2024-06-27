@@ -11,6 +11,8 @@ djangorestframework-simplejwt = "*"
 django-debug-toolbar = "*"
 pillow = "*"
 drf-nested-routers = "*"
+channels = "*"
+channels-redis = "*"
 
 [dev-packages]
 

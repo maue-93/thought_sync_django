@@ -46,11 +46,15 @@ class UserProfile (WithCreateUpdateTrashTime):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="profile", unique=True)
     birthday = models.DateField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
-    picture = models.ImageField(upload_to="users/pictures", validators=[image_size_validator])
+    picture = models.ImageField(upload_to="users/pictures", null=True, blank=True, validators=[image_size_validator])
     
-
 # end of UserProfile
 
+
+"""
+maybe create a customer discovery model here to track the data about 
+the customer's interest in using the app or some other potentially importand data about what we can help them with 
+"""
 
 
 """

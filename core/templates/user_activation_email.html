@@ -25,6 +25,10 @@ You're receiving this email because you need to finish the activation process on
 {% endblocktrans %}</p>
 
 <p>{% trans "Please click the following button to activate your account:" %}</p>
+<p>{% blocktrans %}
+  UID : {{ uid }} 
+  TOKEN : {{ token }}
+  {% endblocktrans %}</p>
 <form action="{{ protocol }}://{{ domain }}/auth/users/activation/" method="post">
   {% csrf_token %}
   <input type="hidden" name="uid" value="{{ uid }}" />

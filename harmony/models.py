@@ -15,7 +15,11 @@ from .validators import image_size_validator
     INHERITING MODELS : 
         - UserProfile
         - Synch
+        - SynchMembership
         - Stream
+        - Note
+        - TextNote
+        - ImageNote
 """
 class WithCreateUpdateTrashTime(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -37,6 +41,7 @@ class WithCreateUpdateTrashTime(models.Model):
         - 
     RELATED FIELDS :
         - mysynchs : model = Synch : synchs created by this user
+        - synchs : model = SynchMembership : list of synchs this profile owner is part of
         - mystreams : model = Stream : streams created by this user
         - notes : model = Note : notes created by this user
 """
@@ -67,18 +72,35 @@ the customer's interest in using the app or some other potentially importand dat
         - 
     RELATED FIELDS :
         - streams : model = Stream : streams assossiated with this synch
+        - members : model = SynchMembership : profiles of each member in the synch
 """
 class Synch (WithCreateUpdateTrashTime):
     id = models.UUIDField(primary_key=True, default=uuid4)
     title = models.TextField(null=True, blank=True)
     # the reason why we do not automatically delete the synch if a user delete their account or profile is
     # because there might be others that are still using it
-    created_by = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mysynchs")
-    picture = models.ImageField(upload_to="synchs/pictures", validators=[image_size_validator])
+    creator = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mysynchs")
+    picture = models.ImageField(upload_to="synchs/pictures", null=True, blank=True, validators=[image_size_validator])
     
-
 # end of Synch
 
+
+"""
+    MODEL = SynchMembership
+    USES:
+        - to track what user profiles are in what synchs
+    NOTICES:
+        - 
+    TO DO:
+        - 
+    RELATED FIELDS :
+        - 
+"""
+class SynchMembership (WithCreateUpdateTrashTime):
+    synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="members")
+    member = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="synchs")
+
+# end of SynchMembership
 
 """
     MODEL = Stream
@@ -96,7 +118,7 @@ class Stream (WithCreateUpdateTrashTime):
     # if a whole synch is deleted, everything in it should be deleted
     synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="streams")
     title = models.TextField(null=True, blank=True)
-    created_by = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mystreams")
+    creator = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mystreams")
     
 # end of Stream
 
@@ -117,7 +139,7 @@ class Stream (WithCreateUpdateTrashTime):
 """
 class Note (WithCreateUpdateTrashTime):
     stream = models.ForeignKey(Stream, on_delete=models.CASCADE, related_name="notes")
-    sender = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="notes")
+    taker = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="notes")
 
 # end of Note
 

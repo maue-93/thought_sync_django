@@ -185,6 +185,9 @@ DJOSER = {
     'EMAIL': {
         'activation': 'core.emails.CustomActivationEmail',  # Path to your custom email class
     },
+    'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
+    'PASSWORD_RESET_CONFIRM_URL':'password/reset/confirm/{uid}/{token}'
 }
 # the PASSWORD_RESET_TIMEOUT is both for password reset and account validation
 PASSWORD_RESET_TIMEOUT = timedelta(minutes=40).total_seconds()

@@ -17,8 +17,8 @@ class SynchSerializer (serializers.ModelSerializer):
     creator = UserProfileSerializer(read_only=True)
     class Meta:
         model = models.Synch
-        fields = ["id", "title", "creator", "picture"]
-        read_only_fields = ["id"]
+        fields = ["id", "name", "creator", "picture", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 # end of SynchSerializer
 
@@ -33,4 +33,9 @@ class SynchMembershipSerializer (serializers.ModelSerializer):
 
 # end of SynchMembershipSerializer
 
-
+class StreamSerializer (serializers.ModelSerializer):
+    creator = UserProfileSerializer(read_only=True)
+    class Meta:
+        model = models.Stream
+        fields = ["id", "name", "creator"]
+        read_only_fields = ["id"]

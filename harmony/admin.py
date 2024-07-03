@@ -26,10 +26,10 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(models.Synch)
 class SynchAdmin(admin.ModelAdmin):
-    list_display = ["id", "title", "creator_username", "picture"]
+    list_display = ["id", "name", "creator_username", "picture"]
     list_select_related = ['creator']
-    search_fields = ['title', 'creator_username']
-    list_editable = ["title", "picture"]
+    search_fields = ['name', 'creator_username']
+    list_editable = ["name", "picture"]
     exclude = ["id", "created_at", "updated_at", "trashed_at"]
     def creator_username(self, synch):
         return synch.creator.user.username

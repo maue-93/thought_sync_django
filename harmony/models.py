@@ -76,7 +76,7 @@ the customer's interest in using the app or some other potentially importand dat
 """
 class Synch (WithCreateUpdateTrashTime):
     id = models.UUIDField(primary_key=True, default=uuid4)
-    title = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
     # the reason why we do not automatically delete the synch if a user delete their account or profile is
     # because there might be others that are still using it
     creator = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mysynchs")
@@ -117,7 +117,7 @@ class Stream (WithCreateUpdateTrashTime):
     id = models.UUIDField(primary_key=True, default=uuid4)
     # if a whole synch is deleted, everything in it should be deleted
     synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="streams")
-    title = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
     creator = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mystreams")
     
 # end of Stream

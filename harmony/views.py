@@ -5,9 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import status
 
-from .serializers import UserProfileSerializer, SynchSerializer, SynchMembershipSerializer
+from .serializers import StreamSerializer, UserProfileSerializer, \
+    SynchSerializer, SynchMembershipSerializer, TextNoteSerializer, \
+    NoteSerializer, ImageNoteSerializer
 from .permissions import IsAdminOrReadOnly, IsSuperUserOrOwner, IsSuperUser
-from .models import UserProfile, Synch, SynchMembership, Stream
+from .models import UserProfile, Synch, SynchMembership, Stream,\
+      Note, TextNote, ImageNote
 
 # Create your views here.
 
@@ -83,13 +86,77 @@ class SynchMembershipViewSet (ModelViewSet):
 """
 
 """
-# class StreamViewSet (ModelViewSet):
-#     permission_classes = [IsAuthenticated]
+class StreamViewSet (ModelViewSet):
+    permission_classes = [IsAuthenticated]
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         return SynchMembership.objects.filter(member__user=user)
+    def get_queryset(self):
+        user = self.request.user
+        return Stream.objects.filter(creator__user=user)
     
-#     def get_serializer_class(self):
-#         return SynchMembershipSerializer
+    def get_serializer_class(self):
+        return StreamSerializer
+    
+    def perform_create(self, serializer):
+        # get user making the request
+        user = self.request.user
+        # get the profile of this user
+        profile = UserProfile.objects.get(user=user)
 
+        with transaction.atomic():
+            serializer.save(creator=profile)
+
+# end of StreamViewSet
+
+
+class NoteViewSet (ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Note.objects.filter(stream_id=self.kwargs['stream_pk'])
+    
+    def get_serializer_class(self):
+        return NoteSerializer
+    
+    def perform_create(self, serializer):
+        # get user making the request
+        user = self.request.user
+        # get the profile of this user
+        profile = UserProfile.objects.get(user=user)
+
+        with transaction.atomic():
+            stream = Stream.objects.get(id=self.kwargs['stream_pk'])
+            serializer.save(taker=profile, stream=stream)
+
+# end of NoteViewSet
+
+class TextNoteViewSet (ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        user = self.request.user
+        return TextNote.objects.filter(note_id=self.kwargs['note_pk'])
+    
+    def get_serializer_class(self):
+        return TextNoteSerializer
+    
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            note = Note.objects.get(id=self.kwargs['note_pk'])
+            serializer.save(note=note)
+    
+# end of TextNoteViewSet
+
+
+class ImageNoteViewSet (ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        user = self.request.user
+        return ImageNote.objects.filter(note_id=self.kwargs['note_pk'])
+    
+    def get_serializer_class(self):
+        return ImageNoteSerializer
+    
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            note = Note.objects.get(id=self.kwargs['note_pk'])
+            serializer.save(note=note)
+    
+# end of ImageNoteViewSet

@@ -4,3 +4,5 @@
     - should we choose Bearer or JWT as header
     - change ACCESS_TOKEN_LIFETIME and REFRESH_TOKEN_LIFETIME
         - we need the user to be authenticated forever until they log out
+
++ 

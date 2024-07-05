@@ -33,3 +33,22 @@ class SynchAdmin(admin.ModelAdmin):
     exclude = ["id", "created_at", "updated_at", "trashed_at"]
     def creator_username(self, synch):
         return synch.creator.user.username
+    
+
+
+@admin.register(models.SynchMembership)
+class SynchMembershipAdmin(admin.ModelAdmin):
+    list_display = ["id", "synch", "member"]
+    list_select_related = ['member']
+    list_editable = []
+    exclude = ["id", "created_at", "updated_at", "trashed_at"]
+  
+
+
+@admin.register(models.Stream)
+class StreamAdmin(admin.ModelAdmin):
+    list_display = ["id", "created_at", "synch", "name", "creator"]
+    list_select_related = ['creator']
+    list_editable = []
+    exclude = ["id", "created_at", "updated_at", "trashed_at"]
+  

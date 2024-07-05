@@ -138,6 +138,7 @@ class Stream (WithCreateUpdateTrashTime):
         - images : model = ImageNote : collection of images content of this note
 """
 class Note (WithCreateUpdateTrashTime):
+    id = models.UUIDField(primary_key=True, default=uuid4)
     stream = models.ForeignKey(Stream, on_delete=models.CASCADE, related_name="notes")
     taker = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="notes")
 
@@ -160,6 +161,7 @@ class TextNote (WithCreateUpdateTrashTime):
     note = models.OneToOneField(Note, on_delete=models.CASCADE, related_name="text")
 
 # end of TextNote
+
 
 """
     MODEL = ImageNote

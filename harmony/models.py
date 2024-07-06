@@ -99,7 +99,11 @@ class Synch (WithCreateUpdateTrashTime):
 class SynchMembership (WithCreateUpdateTrashTime):
     synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="members")
     member = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="synchs")
-
+    
+    class Meta:
+        # ensure that a pair is unique to avoid duplicates
+        unique_together = ('synch', 'member')
+        
 # end of SynchMembership
 
 """

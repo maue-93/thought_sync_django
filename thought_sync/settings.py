@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -143,10 +144,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
     TO DO : - change before deployement
 """
 INTERNAL_IPS = [
-    # ...
     "127.0.0.1",
-    # ...
 ]
+
+"""
+    to allow general and websocket server to run at the same time 
+    and allow one to affect the other
+"""
+CORS_ALLOWED_ORIGINS = [
+    # # "exp://139.147.205.224:8081",
+    # "http://localhost:8081",
+    # "http://127.0.0.1:8081",
+]
+
 
 """
     model = core.User

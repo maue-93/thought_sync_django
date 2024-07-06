@@ -10,9 +10,17 @@ router.register('synchs', views.SynchViewSet, basename='synchs')
 router.register('synch_memberships', views.SynchMembershipViewSet, basename='synch_memberships')
 router.register('streams', views.StreamViewSet, basename='streams')
 
+# register synch membership endpoints under synch instance endpoint
+# When lookup='synch', it means that the URL parameter for the Stream instance 
+# will be named ssynch_pk (by default) in the Note viewset
+synchs_router = NestedDefaultRouter(router, r'synchs', lookup='synch') 
+synchs_router.register(r'members', views.SynchMembershipViewSet, basename='members')
+
+# register stream membership endpoints under synch instance endpoint
+synchs_router.register(r'streams', views.StreamViewSet, basename='streams')
+
 # register notes endpoints under stream instance endpoint
-# When lookup='stream', it means that the URL parameter for the Stream instance will be named stream_pk (by default) in the Note viewset
-streams_router = NestedDefaultRouter(router, r'streams', lookup='stream') 
+streams_router = NestedDefaultRouter(synchs_router, r'streams', lookup='stream') 
 streams_router.register(r'notes', views.NoteViewSet, basename='notes')
 # register text and image notes under note instance endpoint
 notes_router = NestedDefaultRouter(streams_router, r'notes', lookup='note')
@@ -21,6 +29,7 @@ notes_router.register(r'images', views.ImageNoteViewSet, basename='images')
 
 urlpatterns = [
     path(r'', include(router.urls)),
+    path(r'', include(synchs_router.urls)),
     path(r'', include(streams_router.urls)),
     path(r'', include(notes_router.urls)),
 ]

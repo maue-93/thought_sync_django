@@ -74,11 +74,14 @@ class SynchMembershipViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return SynchMembership.objects.filter(member__user=user)
+        return SynchMembership.objects.filter(synch_id=self.kwargs['synch_pk'])
     
     def get_serializer_class(self):
         return SynchMembershipSerializer
+    
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            serializer.save(synch_id=self.kwargs['synch_pk'])
 
 # end of SynchMembershipViewSet
 
@@ -90,8 +93,7 @@ class StreamViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return Stream.objects.filter(creator__user=user)
+        return Stream.objects.filter(synch_id=self.kwargs['synch_pk'])
     
     def get_serializer_class(self):
         return StreamSerializer
@@ -103,7 +105,7 @@ class StreamViewSet (ModelViewSet):
         profile = UserProfile.objects.get(user=user)
 
         with transaction.atomic():
-            serializer.save(creator=profile)
+            serializer.save(creator=profile, synch_id=self.kwargs['synch_pk'])
 
 # end of StreamViewSet
 

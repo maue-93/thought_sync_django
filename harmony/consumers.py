@@ -1,3 +1,8 @@
+import os
+import django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "thought_sync.settings")
+django.setup()
+
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -45,7 +50,7 @@ class HomeConsumer(AsyncWebsocketConsumer):
             # Create SynchMembership
             await SynchMembership.objects.acreate(synch=synch, member=invitee_profile)
 
-            # Send message to the invited user only
+            # Temporarily add the invited user's channel to send the invite message
             await self.channel_layer.group_add(
                 f"user_{invitee_user.id}",
                 self.channel_name
@@ -68,15 +73,28 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            # Remove the invited user's channel from the group after sending the message
+            await self.channel_layer.group_discard(
+                f"user_{invitee_user.id}",
+                self.channel_name
+            )
+
+        except Synch.DoesNotExist:
+            await self.send(text_data=json.dumps({'error': 'Synch not found'}))
+        except User.DoesNotExist:
+            await self.send(text_data=json.dumps({'error': 'User not found'}))
+        except UserProfile.DoesNotExist:
+            await self.send(text_data=json.dumps({'error': 'User profile not found'}))
         except Exception as e:
-            # Handle the exception (log it, send error message, etc.)
+            # Log the exception (you can use a logger instead of print)
             print(e)
+            await self.send(text_data=json.dumps({'error': 'An error occurred'}))
 
     async def create_synch(self, data):
         name = data.get('name')
-        creator_profile = await UserProfile.objects.aget(user=self.user)
 
         try:
+            creator_profile = await UserProfile.objects.aget(user=self.user)
             synch = await Synch.objects.acreate(name=name, creator=creator_profile)
 
             # Send message to the user who created the synch
@@ -94,9 +112,12 @@ class HomeConsumer(AsyncWebsocketConsumer):
                 'synch_data': synch_data
             }))
 
+        except UserProfile.DoesNotExist:
+            await self.send(text_data=json.dumps({'error': 'User profile not found'}))
         except Exception as e:
-            # Handle the exception (log it, send error message, etc.)
+            # Log the exception (you can use a logger instead of print)
             print(e)
+            await self.send(text_data=json.dumps({'error': 'An error occurred'}))
 
     async def synch_invite(self, event):
         synch_data = event['synch_data']
@@ -105,3 +126,5 @@ class HomeConsumer(AsyncWebsocketConsumer):
             'type': 'synch_invite',
             'synch_data': synch_data
         }))
+
+

@@ -26,25 +26,25 @@ class SynchSerializer (serializers.ModelSerializer):
 class SynchMembershipSerializer (serializers.ModelSerializer):
     # synch = SynchSerializer()
     # member = UserProfileSerializer()
-    synch_id = serializers.PrimaryKeyRelatedField(queryset=models.Synch.objects.all(), source='synch')
+    # synch_id = serializers.PrimaryKeyRelatedField(queryset=models.Synch.objects.all(), source='synch')
     member_id = serializers.PrimaryKeyRelatedField(queryset=models.UserProfile.objects.all(), source='member')
 
     class Meta:
         model = models.SynchMembership
         fields = ["id", "synch_id", "member_id"]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "synch_id"]
 
 # end of SynchMembershipSerializer
 
 
 class StreamSerializer (serializers.ModelSerializer):
     creator = UserProfileSerializer(read_only=True)
-    synch_id = serializers.PrimaryKeyRelatedField(queryset=models.Synch.objects.all(), source='synch')
+    # synch_id = serializers.PrimaryKeyRelatedField(queryset=models.Synch.objects.all(), source='synch')
     
     class Meta:
         model = models.Stream
         fields = ["id", "synch_id", "name", "creator", "created_at", "updated_at"]
-        read_only_fields = ["id", "creator", "created_at", "updated_at"]
+        read_only_fields = ["id", "synch_id", "creator", "created_at", "updated_at"]
 
 # end of StreamSerializer
 

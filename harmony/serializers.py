@@ -55,16 +55,18 @@ class NoteSerializer (serializers.ModelSerializer):
         model = models.Note
         fields = ["id", "stream_id", "taker", "created_at", "updated_at"]
         read_only_fields = ["id", "taker", "created_at", "updated_at"]
+        
 
 # end of NoteSerializer
 
 
 class TextNoteSerializer (serializers.ModelSerializer):
+    type = serializers.CharField(default="text", read_only=True)
     note = NoteSerializer(read_only=True)
     class Meta:
         model = models.TextNote
-        fields = ["id", "created_at", "updated_at", "note", "text"]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        fields = ["id", "type", "created_at", "updated_at", "note_id", "note", "text"]
+        read_only_fields = ["id", "type", "created_at", "updated_at", "note_id"]
 
 # end of TextNoteSerializer
 
@@ -75,3 +77,19 @@ class ImageNoteSerializer (serializers.ModelSerializer):
         model = models.ImageNote
         fields = ["id", "created_at", "updated_at", "note", "image"]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+# end of ImageNoteSerializer
+
+
+class ImageNoteBulkSerializer (serializers.ModelSerializer):
+    note_id = serializers.SerializerMethodField()
+    type = serializers.CharField(default="images", read_only=True)
+    images = ImageNoteSerializer(many=True)
+    class Meta:
+        model = models.Note
+        fields = ["note_id", "type", "created_at", "updated_at", "images"]
+        read_only_fields = ["id", "type", "created_at", "updated_at", "images"]
+
+    def get_note_id (self, obj):
+        return obj.id
+# end of ImageNoteBulkSerializer

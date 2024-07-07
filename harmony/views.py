@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import status
 
+from django.db.models import Count
+
 from .serializers import StreamSerializer, UserProfileSerializer, \
     SynchSerializer, SynchMembershipSerializer, TextNoteSerializer, \
-    NoteSerializer, ImageNoteSerializer
+    NoteSerializer, ImageNoteSerializer, ImageNoteBulkSerializer
 from .permissions import IsAdminOrReadOnly, IsSuperUserOrOwner, IsSuperUser
 from .models import UserProfile, Synch, SynchMembership, Stream,\
       Note, TextNote, ImageNote
@@ -107,6 +109,21 @@ class StreamViewSet (ModelViewSet):
         with transaction.atomic():
             serializer.save(creator=profile, synch_id=self.kwargs['synch_pk'])
 
+    # get the list of all the notes in this stream
+    @action(detail=True, methods=['get'], url_path='content', url_name='content')
+    def content(self, request, pk=None, synch_pk=None):
+        # get all the text notes that are in this stream
+        texts = TextNote.objects.filter(note__stream__id=pk)
+        # serialize all the text notes
+        texts_serializer = TextNoteSerializer(texts, many=True)
+        # get all the notes that has images in it
+        notes = Note.objects.annotate(image_count=Count('images')).filter(stream__id=pk, image_count__gt=0)
+        # serialize the images in bulk of their respective notes
+        image_bulks_serializer = ImageNoteBulkSerializer(notes, many=True)
+        # now put the text and the image bulks in one list
+        stream_content = texts_serializer.data + image_bulks_serializer.data
+        return Response(stream_content)
+
 # end of StreamViewSet
 
 
@@ -150,7 +167,6 @@ class TextNoteViewSet (ModelViewSet):
 class ImageNoteViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
-        user = self.request.user
         return ImageNote.objects.filter(note_id=self.kwargs['note_pk'])
     
     def get_serializer_class(self):

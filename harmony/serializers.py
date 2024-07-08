@@ -88,7 +88,7 @@ class ImageNoteBulkSerializer (serializers.ModelSerializer):
     class Meta:
         model = models.Note
         fields = ["note_id", "type", "created_at", "updated_at", "images"]
-        read_only_fields = ["id", "type", "created_at", "updated_at", "images"]
+        read_only_fields = ["note_id", "type", "created_at", "updated_at", "images"]
 
     def get_note_id (self, obj):
         return obj.id

@@ -103,7 +103,7 @@ class SynchMembership (WithCreateUpdateTrashTime):
     class Meta:
         # ensure that a pair is unique to avoid duplicates
         unique_together = ('synch', 'member')
-        
+
 # end of SynchMembership
 
 """

@@ -43,6 +43,7 @@ class WithCreateUpdateTrashTime(models.Model):
         - mysynchs : model = Synch : synchs created by this user
         - synchs : model = SynchMembership : list of synchs this profile owner is part of
         - mystreams : model = Stream : streams created by this user
+        - streams : model = StreamMembership : list of streams this profile owner is part of
         - notes : model = Note : notes created by this user
 """
 class UserProfile (WithCreateUpdateTrashTime):
@@ -116,15 +117,64 @@ class SynchMembership (WithCreateUpdateTrashTime):
         - 
     RELATED FIELDS :
         - notes : model = Note : notes (collection of notes) inside this stream (line of notes)
+        - members : model = StreamMembership : profiles of each member in the stream
 """
 class Stream (WithCreateUpdateTrashTime):
+    EVERYONE = 'EVE'
+    ME_ONLY = 'MEO'
+    CUSTOM = 'CUS'
+
+    MEMBERSHIP_TYPE_CHOICES = [
+        (EVERYONE, 'Everyone'),
+        (ME_ONLY, 'Me Only'),
+        (CUSTOM, 'Custom'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid4)
     # if a whole synch is deleted, everything in it should be deleted
     synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="streams")
     name = models.TextField(null=True, blank=True)
     creator = models.ForeignKey(UserProfile, null=True, on_delete=models.SET_NULL, related_name="mystreams")
-    
+    membership_type = models.CharField(max_length=3, choices=MEMBERSHIP_TYPE_CHOICES, default=EVERYONE)
+
 # end of Stream
+
+
+"""
+    MODEL = StreamMembership
+    USES:
+        - to track membership of the user to a stream
+        _ to track customization (order, mark_resolved, etc) of user to stream
+    NOTICES:
+        - 
+    TO DO:
+        - 
+    RELATED FIELDS :
+        -  : model =  : 
+"""
+class StreamMembership (models.Model):
+    NEW = 'NEW'
+    ACTIVE = 'ACT'
+    RESOLVED = 'RES'
+    DOES_NOT_CONCERN_ME = 'DNC'
+
+    STATUS_CHOICES = [
+        (NEW, 'New'),
+        (ACTIVE, 'Active'),
+        (RESOLVED, 'Resolved'),
+        (DOES_NOT_CONCERN_ME, 'Does Not Concern Me'),
+    ]
+
+    stream = models.ForeignKey(Stream, on_delete=models.CASCADE, related_name="members")
+    member = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="streams")
+    order = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, default=NEW)
+
+    class Meta:
+        # ensure that a pair is unique to avoid duplicates
+        unique_together = ('stream', 'member')
+
+# end of StreamMembership
 
 
 """

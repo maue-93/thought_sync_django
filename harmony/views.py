@@ -1,11 +1,12 @@
 from django.db import transaction
+from django.db.models import Q, Count
+from rest_framework import serializers
+
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import status
-
-from django.db.models import Count
 
 from .serializers import StreamSerializer, UserProfileSerializer, \
     SynchSerializer, SynchMembershipSerializer, TextNoteSerializer, \
@@ -81,12 +82,12 @@ class SynchMembershipViewSet (ModelViewSet):
     def get_serializer_class(self):
         return SynchMembershipSerializer
     
+    # remember that the serializer create function is also overriden
     def perform_create(self, serializer):
         with transaction.atomic():
             serializer.save(synch_id=self.kwargs['synch_pk'])
 
 # end of SynchMembershipViewSet
-
 
 """
 
@@ -95,7 +96,10 @@ class StreamViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Stream.objects.filter(synch_id=self.kwargs['synch_pk'])
+        # get streams that are for everyone and the ones that the user is part of
+        user = self.request.user
+        filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member__user=user))
+        return Stream.objects.filter(filter_condition)
     
     def get_serializer_class(self):
         return StreamSerializer

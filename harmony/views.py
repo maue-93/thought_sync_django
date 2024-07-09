@@ -8,9 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import status
 
-from .serializers import StreamSerializer, UserProfileSerializer, \
-    SynchSerializer, SynchMembershipSerializer, TextNoteSerializer, \
-    NoteSerializer, ImageNoteSerializer, ImageNoteBulkSerializer
+from .serializers import UserProfileSerializer, SynchSerializer, \
+    SynchMembershipSerializer, StreamSerializer, \
+    StreamMembershipSerializer, TextNoteSerializer,NoteSerializer, \
+    ImageNoteSerializer, ImageNoteBulkSerializer
 from .permissions import IsAdminOrReadOnly, IsSuperUserOrOwner, IsSuperUser
 from .models import UserProfile, Synch, SynchMembership, Stream,\
     StreamMembership, Note, TextNote, ImageNote
@@ -117,7 +118,14 @@ class StreamViewSet (ModelViewSet):
         profile = UserProfile.objects.get(user=user)
 
         with transaction.atomic():
-            serializer.save(creator=profile, synch_id=self.kwargs['synch_pk'])
+            # save the new stream
+            stream = serializer.save(creator=profile, synch_id=self.kwargs['synch_pk'])
+            # make sure to create the stream membership (this stream + this user profile)
+            # get the order first. it's gonna be the lowest order -1
+            filter_condition = Q(stream__synch__id=self.kwargs['synch_pk']) & Q(status=StreamMembership.ACTIVE)
+            lowest_order = StreamMembership.objects.filter(filter_condition).order_by("order").values_list('order', flat=True).first()
+            new_order = (lowest_order if lowest_order else 0) - 1
+            StreamMembership.objects.create(stream=stream, member=profile, status=StreamMembership.ACTIVE, order=new_order)
 
     # get the list of all the notes in this stream
     @action(detail=True, methods=['get'], url_path='content', url_name='content')
@@ -135,6 +143,25 @@ class StreamViewSet (ModelViewSet):
         return Response(stream_content)
 
 # end of StreamViewSet
+
+"""
+
+"""
+class StreamMembershipViewSet (ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return StreamMembership.objects.filter(stream_id=self.kwargs['stream_pk'])
+    
+    def get_serializer_class(self):
+        return StreamMembershipSerializer
+    
+    # remember that the serializer create function is also overriden
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            serializer.save(stream_id=self.kwargs['stream_pk'])
+
+# end of StreamMembershipViewSet
 
 
 class NoteViewSet (ModelViewSet):

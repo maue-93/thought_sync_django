@@ -57,6 +57,29 @@ class StreamSerializer (serializers.ModelSerializer):
 # end of StreamSerializer
 
 
+class StreamMembershipSerializer (serializers.ModelSerializer):
+    member = UserProfileSerializer(read_only=True)
+    username = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = models.StreamMembership
+        fields = ['id', "stream_id", "member", "order", "status", "username"]
+        read_only_fields = ["id", "stream_id", "member"]
+
+    # remember that the viewset perform_create function is also overriden
+    def create(self, validated_data):
+        username = validated_data.pop('username')
+        try:
+            member = models.UserProfile.objects.get(user__username=username)
+        except models.UserProfile.DoesNotExist:
+            raise serializers.ValidationError({"username": "User with this username does not exist."})
+
+        validated_data['member'] = member
+        return super().create(validated_data)
+    
+# end of StreamMembershipSerializer
+
+
 class NoteSerializer (serializers.ModelSerializer):
     taker = UserProfileSerializer(read_only=True)
     class Meta:
@@ -64,7 +87,6 @@ class NoteSerializer (serializers.ModelSerializer):
         fields = ["id", "stream_id", "taker", "created_at", "updated_at"]
         read_only_fields = ["id", "taker", "created_at", "updated_at"]
         
-
 # end of NoteSerializer
 
 

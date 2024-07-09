@@ -19,8 +19,9 @@ synchs_router.register(r'members', views.SynchMembershipViewSet, basename='membe
 # register stream membership endpoints under synch instance endpoint
 synchs_router.register(r'streams', views.StreamViewSet, basename='streams')
 
-# register notes endpoints under stream instance endpoint
+# register stream memberships and notes endpoints under stream instance endpoint
 streams_router = NestedDefaultRouter(synchs_router, r'streams', lookup='stream') 
+streams_router.register(r'members', views.StreamMembershipViewSet, basename='members')
 streams_router.register(r'notes', views.NoteViewSet, basename='notes')
 # register text and image notes under note instance endpoint
 notes_router = NestedDefaultRouter(streams_router, r'notes', lookup='note')

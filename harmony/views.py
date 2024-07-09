@@ -13,7 +13,7 @@ from .serializers import StreamSerializer, UserProfileSerializer, \
     NoteSerializer, ImageNoteSerializer, ImageNoteBulkSerializer
 from .permissions import IsAdminOrReadOnly, IsSuperUserOrOwner, IsSuperUser
 from .models import UserProfile, Synch, SynchMembership, Stream,\
-      Note, TextNote, ImageNote
+    StreamMembership, Note, TextNote, ImageNote
 
 # Create your views here.
 
@@ -98,8 +98,14 @@ class StreamViewSet (ModelViewSet):
     def get_queryset(self):
         # get streams that are for everyone and the ones that the user is part of
         user = self.request.user
-        filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member__user=user))
-        return Stream.objects.filter(filter_condition)
+        profile = UserProfile.objects.get(user=user)
+        filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
+        queryset = Stream.objects.filter(filter_condition)
+        # for any for everyone stream this user does not have membership to, create the membership
+        streams = queryset.filter(~Q(members__member__user=user))
+        for stream in streams:
+            StreamMembership.objects.create(stream=stream, member=profile)
+        return queryset
     
     def get_serializer_class(self):
         return StreamSerializer

@@ -7,8 +7,9 @@ from . import views
 router = routers.DefaultRouter()
 router.register('user_profiles', views.UserProfileViewSet, basename='user_profiles')
 router.register('synchs', views.SynchViewSet, basename='synchs')
-router.register('synch_memberships', views.SynchMembershipViewSet, basename='synch_memberships')
+router.register('synch_members', views.SynchMembershipViewSet, basename='synch_members')
 router.register('streams', views.StreamViewSet, basename='streams')
+router.register('stream_members', views.StreamMembershipViewSet, basename='stream_members')
 
 # register synch membership endpoints under synch instance endpoint
 # When lookup='synch', it means that the URL parameter for the Stream instance 
@@ -20,7 +21,7 @@ synchs_router.register(r'members', views.SynchMembershipViewSet, basename='membe
 synchs_router.register(r'streams', views.StreamViewSet, basename='streams')
 
 # register stream memberships and notes endpoints under stream instance endpoint
-streams_router = NestedDefaultRouter(synchs_router, r'streams', lookup='stream') 
+streams_router = NestedDefaultRouter(router, r'streams', lookup='stream') 
 streams_router.register(r'members', views.StreamMembershipViewSet, basename='members')
 streams_router.register(r'notes', views.NoteViewSet, basename='notes')
 # register text and image notes under note instance endpoint

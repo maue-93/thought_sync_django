@@ -14,7 +14,7 @@ from .serializers import UserProfileSerializer, SynchSerializer, \
     SynchMembershipSerializer, StreamSerializer, \
     StreamMembershipSerializer, TextNoteSerializer,NoteSerializer, \
     ImageNoteSerializer, ImageNoteBulkSerializer
-from .permissions import IsCreatorOrReadOnly
+from .permissions import IsCreatorOrReadOnly, IsMemberOrReadOnly
 from .models import UserProfile, Synch, SynchMembership, Stream,\
     StreamMembership, Note, TextNote, ImageNote
 
@@ -98,10 +98,29 @@ class SynchMembershipViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return SynchMembership.objects.filter(synch_id=self.kwargs['synch_pk'])
+        user = self.request.user
+        profile = UserProfile.objects.get(user=user)
+        try:
+            # if on harmony/synchs/<synch_id>/members endpoint
+            # memberships that are in this synch
+            filter_condition = Q(synch_id=self.kwargs['synch_pk']) 
+        except:
+            # if on the harmony/synch_members endpoint
+            # memberships that this user has or are part of the synchs this user is part of
+            filter_condition = Q(member=profile) | Q(synch__members__member=profile)
+
+        return SynchMembership.objects.filter(filter_condition).distinct()
     
     def get_serializer_class(self):
         return SynchMembershipSerializer
+    
+    def get_permissions(self):
+        # Define custom permissions based on request method
+        if self.request.method not in SAFE_METHODS:
+            self.permission_classes = [IsAuthenticated, IsMemberOrReadOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     # remember that the serializer create function is also overriden
     def perform_create(self, serializer):
@@ -124,19 +143,19 @@ class StreamViewSet (ModelViewSet):
 
         try:
             # if on harmony/synchs/<synch_id>/streams endpoint
-            # streams that is in this synch and is for everyone or the user is part of
+            # streams that are in this synch and is for everyone or the user is part of
             filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
+            # for any for everyone stream in this synch this user does not have membership to, create the membership
+            streams = Stream.objects.filter(Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) & ~Q(members__member__user=user)))
+            for stream in streams: 
+                StreamMembership.objects.create(stream_id=stream.id, member=profile)
         except:
             # if on the harmony/streams endpoint
-            # 
+            # streams that this user is part of and is for everyone or the user is part of
             filter_condition = Q(synch__members__member=profile) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
 
         queryset = Stream.objects.filter(filter_condition)
-        # for any for everyone stream this user does not have membership to, create the membership
-        # streams = Stream.objects.filter(Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) & ~Q(members__member__user=user)))
-        # for stream in streams: 
-        #     StreamMembership.objects.create(stream_id=stream.id, member=profile)
-        return queryset
+        return queryset.distinct()
     
     def get_serializer_class(self):
         return StreamSerializer
@@ -190,10 +209,30 @@ class StreamMembershipViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return StreamMembership.objects.filter(stream_id=self.kwargs['stream_pk'])
+        user = self.request.user
+        profile = UserProfile.objects.get(user=user)
+
+        try:
+            # if on harmony/streams/<stream_id>/members endpoint
+            # memberships that are in this stream
+            filter_condition = Q(stream_id=self.kwargs['stream_pk']) 
+        except:
+            # if on the harmony/stream_members endpoint
+            # memberships that this user has or are part of the streams this user is part of
+            filter_condition = Q(member=profile) | Q(stream__members__member=profile)
+        # the filter condition might create duplicates so make sure to add distinct at the end
+        return StreamMembership.objects.filter(filter_condition).distinct()
     
     def get_serializer_class(self):
         return StreamMembershipSerializer
+    
+    def get_permissions(self):
+        # Define custom permissions based on request method
+        if self.request.method not in SAFE_METHODS:
+            self.permission_classes = [IsAuthenticated, IsMemberOrReadOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     # remember that the serializer create function is also overriden
     def perform_create(self, serializer):

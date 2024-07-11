@@ -2,8 +2,10 @@ from django.db import transaction
 from django.db.models import Q, Count
 from rest_framework import serializers
 
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
+    ListModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import status
@@ -21,7 +23,7 @@ from .models import UserProfile, Synch, SynchMembership, Stream,\
 """
 
 """
-class UserProfileViewSet(ModelViewSet):
+class UserProfileViewSet (CreateModelMixin, RetrieveModelMixin, ListModelMixin, GenericViewSet): 
     permission_classes = [IsAuthenticated]
     def get_queryset(self): 
         # only the user's profile
@@ -34,13 +36,23 @@ class UserProfileViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['get'], url_path='me', url_name='me')
+    @action(detail=False, methods=['get', 'patch', 'put'], url_path='me', url_name='me')
     def me(self, request):
         user_profile = self.get_queryset().filter(user=request.user).first()
-        if user_profile:
+        if not user_profile:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        if request.method == 'GET':
             serializer = self.get_serializer(user_profile)
             return Response(serializer.data)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        elif request.method in ['PUT', 'PATCH']:
+            serializer = self.get_serializer(user_profile, data=request.data, partial=request.method == 'PATCH')
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 # end of UserProfileViewSet
     
@@ -90,6 +102,7 @@ class SynchMembershipViewSet (ModelViewSet):
 
 # end of SynchMembershipViewSet
 
+
 """
 
 """
@@ -103,9 +116,9 @@ class StreamViewSet (ModelViewSet):
         filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
         queryset = Stream.objects.filter(filter_condition)
         # for any for everyone stream this user does not have membership to, create the membership
-        streams = queryset.filter(~Q(members__member__user=user))
-        for stream in streams:
-            StreamMembership.objects.create(stream=stream, member=profile)
+        # streams = Stream.objects.filter(Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) & ~Q(members__member__user=user)))
+        # for stream in streams:
+        #     StreamMembership.objects.create(stream_id=stream.id, member=profile)
         return queryset
     
     def get_serializer_class(self):
@@ -129,7 +142,7 @@ class StreamViewSet (ModelViewSet):
 
     # get the list of all the notes in this stream
     @action(detail=True, methods=['get'], url_path='content', url_name='content')
-    def content(self, request, pk=None, synch_pk=None):
+    def content(self, request, pk=None, synch_pk=None): 
         # get all the text notes that are in this stream
         texts = TextNote.objects.filter(note__stream__id=pk)
         # serialize all the text notes
@@ -143,6 +156,7 @@ class StreamViewSet (ModelViewSet):
         return Response(stream_content)
 
 # end of StreamViewSet
+
 
 """
 

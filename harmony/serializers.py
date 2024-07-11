@@ -63,8 +63,8 @@ class StreamMembershipSerializer (serializers.ModelSerializer):
 
     class Meta:
         model = models.StreamMembership
-        fields = ['id', "stream_id", "member", "order", "status", "username"]
-        read_only_fields = ["id", "stream_id", "member"]
+        fields = ['id', "stream_id", "member", "order", "status", "username", "created_at", "updated_at"]
+        read_only_fields = ["id", "stream_id", "member", "created_at", "updated_at"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):

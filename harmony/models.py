@@ -152,7 +152,7 @@ class Stream (WithCreateUpdateTrashTime):
     RELATED FIELDS :
         -  : model =  : 
 """
-class StreamMembership (models.Model):
+class StreamMembership (WithCreateUpdateTrashTime):
     NEW = 'NEW'
     ACTIVE = 'ACT'
     RESOLVED = 'RES'

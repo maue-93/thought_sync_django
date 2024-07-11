@@ -98,6 +98,7 @@ class Synch (WithCreateUpdateTrashTime):
         - 
 """
 class SynchMembership (WithCreateUpdateTrashTime):
+    id = models.UUIDField(primary_key=True, default=uuid4)
     synch = models.ForeignKey(Synch, on_delete=models.CASCADE, related_name="members")
     member = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="synchs")
     
@@ -165,6 +166,7 @@ class StreamMembership (WithCreateUpdateTrashTime):
         (DOES_NOT_CONCERN_ME, 'Does Not Concern Me'),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid4)
     stream = models.ForeignKey(Stream, on_delete=models.CASCADE, related_name="members")
     member = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="streams")
     order = models.IntegerField(null=True, blank=True)
@@ -211,6 +213,7 @@ class Note (WithCreateUpdateTrashTime):
         -  : model =  : 
 """
 class TextNote (WithCreateUpdateTrashTime):
+    id = models.UUIDField(primary_key=True, default=uuid4)
     text = models.TextField()
     note = models.OneToOneField(Note, on_delete=models.CASCADE, related_name="text")
 
@@ -229,6 +232,7 @@ class TextNote (WithCreateUpdateTrashTime):
         -  : model =  : 
 """
 class ImageNote (WithCreateUpdateTrashTime):
+    id = models.UUIDField(primary_key=True, default=uuid4)
     image = models.ImageField(upload_to="notes/images", validators=[image_size_validator])
     note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name="images")
 

@@ -1,12 +1,12 @@
 from django.db import transaction
 from django.db.models import Q, Count
-from rest_framework import serializers
+from rest_framework import serializers, mixins, permissions
 
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     ListModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet, ReadOnlyModelViewSet
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.decorators import action
 from rest_framework import status
 
@@ -14,7 +14,7 @@ from .serializers import UserProfileSerializer, SynchSerializer, \
     SynchMembershipSerializer, StreamSerializer, \
     StreamMembershipSerializer, TextNoteSerializer,NoteSerializer, \
     ImageNoteSerializer, ImageNoteBulkSerializer
-from .permissions import IsAdminOrReadOnly, IsSuperUserOrOwner, IsSuperUser
+from .permissions import IsCreatorOrReadOnly
 from .models import UserProfile, Synch, SynchMembership, Stream,\
     StreamMembership, Note, TextNote, ImageNote
 
@@ -69,6 +69,14 @@ class SynchViewSet (ModelViewSet):
     
     def get_serializer_class(self):
         return SynchSerializer
+
+    def get_permissions(self):
+        # Define custom permissions based on request method
+        if self.request.method not in SAFE_METHODS:
+            self.permission_classes = [IsAuthenticated, IsCreatorOrReadOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     def perform_create(self, serializer):
         # get user making the request
@@ -113,16 +121,33 @@ class StreamViewSet (ModelViewSet):
         # get streams that are for everyone and the ones that the user is part of
         user = self.request.user
         profile = UserProfile.objects.get(user=user)
-        filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
+
+        try:
+            # if on harmony/synchs/<synch_id>/streams endpoint
+            # streams that is in this synch and is for everyone or the user is part of
+            filter_condition = Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
+        except:
+            # if on the harmony/streams endpoint
+            # 
+            filter_condition = Q(synch__members__member=profile) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
+
         queryset = Stream.objects.filter(filter_condition)
         # for any for everyone stream this user does not have membership to, create the membership
         # streams = Stream.objects.filter(Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) & ~Q(members__member__user=user)))
-        # for stream in streams:
+        # for stream in streams: 
         #     StreamMembership.objects.create(stream_id=stream.id, member=profile)
         return queryset
     
     def get_serializer_class(self):
         return StreamSerializer
+    
+    def get_permissions(self):
+        # Define custom permissions based on request method
+        if self.request.method not in SAFE_METHODS:
+            self.permission_classes = [IsAuthenticated, IsCreatorOrReadOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
     
     def perform_create(self, serializer):
         # get user making the request
@@ -229,3 +254,7 @@ class ImageNoteViewSet (ModelViewSet):
             serializer.save(note=note)
     
 # end of ImageNoteViewSet
+
+
+
+

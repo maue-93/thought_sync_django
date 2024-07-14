@@ -198,6 +198,24 @@ class StreamViewSet (ModelViewSet):
         # now put the text and the image bulks in one list
         stream_content = texts_serializer.data + image_bulks_serializer.data
         return Response(stream_content)
+    
+    # get the list of all the active streams if inside a synch endpoint
+    @action(detail=False, methods=['get'], url_path='active', url_name='active')
+    def active(self, request, pk=None, synch_pk=None): 
+        user = self.request.user
+        profile = UserProfile.objects.get(user=user)
+
+        try:
+            # if on harmony/synchs/<synch_id>/streams/active endpoint
+            # streams that are in this synch and is for everyone or the user is part of and active status of stream
+            filter_condition = Q(synch_id=self.kwargs['synch_pk']) & Q(members__member=profile) & Q(members__status=StreamMembership.ACTIVE)
+            queryset = Stream.objects.filter(filter_condition).distinct()
+            serializer = StreamSerializer(queryset, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer)
+
 
 # end of StreamViewSet
 

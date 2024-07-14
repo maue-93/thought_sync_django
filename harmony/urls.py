@@ -13,12 +13,15 @@ router.register('stream_members', views.StreamMembershipViewSet, basename='strea
 
 # register synch membership endpoints under synch instance endpoint
 # When lookup='synch', it means that the URL parameter for the Stream instance 
-# will be named ssynch_pk (by default) in the Note viewset
+# will be named synch_pk (by default) in the Note viewset
 synchs_router = NestedDefaultRouter(router, r'synchs', lookup='synch') 
 synchs_router.register(r'members', views.SynchMembershipViewSet, basename='members')
 
-# register stream membership endpoints under synch instance endpoint
+# register stream endpoints under synch instance endpoint
 synchs_router.register(r'streams', views.StreamViewSet, basename='streams')
+
+# register stream membership endpoints under synch instance endpoint
+synchs_router.register(r'my_stream_memberships', views.StreamMembershipViewSet, basename='my_stream_memberships')
 
 # register stream memberships and notes endpoints under stream instance endpoint
 streams_router = NestedDefaultRouter(router, r'streams', lookup='stream') 

@@ -213,13 +213,22 @@ class StreamMembershipViewSet (ModelViewSet):
         profile = UserProfile.objects.get(user=user)
 
         try:
-            # if on harmony/streams/<stream_id>/members endpoint
-            # memberships that are in this stream
-            filter_condition = Q(stream_id=self.kwargs['stream_pk']) 
+            # if on harmony/synchs/<synch_id>/members endpoint
+            # memberships that are in this synch
+            filter_condition = Q(stream__synch__id=self.kwargs['synch_pk']) & Q(member=profile)
+            # for any for everyone stream in this synch this user does not have membership to, create the membership
+            streams = Stream.objects.filter(Q(synch_id=self.kwargs['synch_pk']) & (Q(membership_type=Stream.EVERYONE) & ~Q(members__member__user=user)))
+            for stream in streams: 
+                StreamMembership.objects.create(stream_id=stream.id, member=profile)
         except:
-            # if on the harmony/stream_members endpoint
-            # memberships that this user has or are part of the streams this user is part of
-            filter_condition = Q(member=profile) | Q(stream__members__member=profile)
+            try:
+                # if on harmony/streams/<stream_id>/members endpoint
+                # memberships that are in this stream
+                filter_condition = Q(stream_id=self.kwargs['stream_pk']) 
+            except:
+                # if on the harmony/stream_members endpoint
+                # memberships that this user has or are part of the streams this user is part of
+                filter_condition = Q(member=profile) | Q(stream__members__member=profile)
         # the filter condition might create duplicates so make sure to add distinct at the end
         return StreamMembership.objects.filter(filter_condition).distinct()
     

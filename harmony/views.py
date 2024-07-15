@@ -200,8 +200,8 @@ class StreamViewSet (ModelViewSet):
         return Response(stream_content)
     
     # get the list of all the active streams if inside a synch endpoint
-    @action(detail=False, methods=['get'], url_path='active', url_name='active')
-    def active(self, request, pk=None, synch_pk=None): 
+    @action(detail=False, methods=['get'], url_path='my_active', url_name='my_active')
+    def my_active(self, request, pk=None, synch_pk=None): 
         user = self.request.user
         profile = UserProfile.objects.get(user=user)
 
@@ -211,10 +211,11 @@ class StreamViewSet (ModelViewSet):
             filter_condition = Q(synch_id=self.kwargs['synch_pk']) & Q(members__member=profile) & Q(members__status=StreamMembership.ACTIVE)
             queryset = Stream.objects.filter(filter_condition).distinct()
             serializer = StreamSerializer(queryset, many=True)
-            return Response(serializer.data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(serializer)
+        
+        return Response(serializer.data)
+
 
 
 # end of StreamViewSet

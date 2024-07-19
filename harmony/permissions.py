@@ -60,5 +60,21 @@ class IsMemberOrReadOnly (permissions.BasePermission):
 # end of IsMemberOrReadOnly
 
 
+class IsNoteTakerOrReadOnly (permissions.BasePermission):
+    """
+    Custom permission to only allow takers of a Synch to edit or delete it.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow SAFE_METHODS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Write permissions are only allowed to the taker of the Synch.
+        return obj.note.taker.user == request.user
+    
+# end of IsNoteTakerOrReadOnly
+
+
 
 

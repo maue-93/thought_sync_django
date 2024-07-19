@@ -12,25 +12,41 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
 # end of UserProfileSerializer
 
+class ForSynchSerializerOnlyNoteSerializer (serializers.ModelSerializer):
+    taker = UserProfileSerializer(read_only=True)
+    class Meta:
+        model = models.Note
+        fields = ["id", "stream_id", "taker", "created_at", "updated_at", "text", "images"]
+        read_only_fields = ["id", "taker", "created_at", "updated_at", "text", "images"]
+        
+# end of ForSynchSerializerOnlyNoteSerializer
 
 class SynchSerializer (serializers.ModelSerializer):
     creator = UserProfileSerializer(read_only=True)
+    last_note = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = models.Synch
-        fields = ["id", "name", "creator", "picture", "created_at", "updated_at"]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        fields = ["id", "name", "creator", "picture", "created_at", "updated_at", "last_note"]
+        read_only_fields = ["id", "created_at", "updated_at", "last_note"]
+
+    def get_last_note (self, obj):
+        last_note_obj = models.Note.objects.filter(stream__synch=obj).order_by('-created_at').first()
+        if last_note_obj:
+            return ForSynchSerializerOnlyNoteSerializer(last_note_obj).data
+        return None
 
 # end of SynchSerializer
 
 
 class SynchMembershipSerializer (serializers.ModelSerializer):
+    synch = SynchSerializer(read_only=True)
     member = UserProfileSerializer(read_only=True)
     username = serializers.CharField(write_only=True)
 
     class Meta:
         model = models.SynchMembership
-        fields = ["id", "synch_id", "member", "username"]
-        read_only_fields = ["id", "synch_id", "member"]
+        fields = ["id","synch", "member", "username"]
+        read_only_fields = ["id", "synch", "member"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):
@@ -58,13 +74,14 @@ class StreamSerializer (serializers.ModelSerializer):
 
 
 class StreamMembershipSerializer (serializers.ModelSerializer):
+    stream = StreamSerializer(read_only=True)
     member = UserProfileSerializer(read_only=True)
     username = serializers.CharField(write_only=True)
 
     class Meta:
         model = models.StreamMembership
-        fields = ['id', "stream_id", "member", "order", "status", "username", "created_at", "updated_at"]
-        read_only_fields = ["id", "stream_id", "member", "created_at", "updated_at"]
+        fields = ['id', "stream", "member", "order", "status", "username", "created_at", "updated_at"]
+        read_only_fields = ["id", "stream", "member", "created_at", "updated_at"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):

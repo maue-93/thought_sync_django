@@ -14,7 +14,7 @@ from .serializers import UserProfileSerializer, SynchSerializer, \
     SynchMembershipSerializer, StreamSerializer, \
     StreamMembershipSerializer, TextNoteSerializer,NoteSerializer, \
     ImageNoteSerializer, ImageNoteBulkSerializer
-from .permissions import IsCreatorOrReadOnly, IsMemberOrReadOnly
+from .permissions import IsCreatorOrReadOnly, IsMemberOrReadOnly, IsNoteTakerOrReadOnly
 from .models import UserProfile, Synch, SynchMembership, Stream,\
     StreamMembership, Note, TextNote, ImageNote
 
@@ -109,7 +109,11 @@ class SynchMembershipViewSet (ModelViewSet):
             # memberships that this user has or are part of the synchs this user is part of
             filter_condition = Q(member=profile) | Q(synch__members__member=profile)
 
-        return SynchMembership.objects.filter(filter_condition).distinct()
+        queryset = SynchMembership.objects\
+                    .select_related("member", "member__user", "synch", \
+                            "synch__creator", "synch__creator__user")\
+                    .filter(filter_condition).distinct()
+        return queryset
     
     def get_serializer_class(self):
         return SynchMembershipSerializer
@@ -127,6 +131,18 @@ class SynchMembershipViewSet (ModelViewSet):
         with transaction.atomic():
             serializer.save(synch_id=self.kwargs['synch_pk'])
 
+    # get the list of all the synch memberships that belong to the user
+    @action(detail=False, methods=['get'], url_path='mine', url_name='mine')
+    def mine(self, request, pk=None, synch_pk=None): 
+        user = self.request.user
+        profile = UserProfile.objects.get(user=user)
+        queryset = SynchMembership.objects\
+            .select_related("member", "member__user", "synch", \
+                            "synch__creator", "synch__creator__user")\
+            .filter(member=profile)
+        serializer = SynchMembershipSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
 # end of SynchMembershipViewSet
 
 
@@ -154,8 +170,8 @@ class StreamViewSet (ModelViewSet):
             # streams that this user is part of and is for everyone or the user is part of
             filter_condition = Q(synch__members__member=profile) & (Q(membership_type=Stream.EVERYONE) | Q(members__member=profile))
 
-        queryset = Stream.objects.filter(filter_condition)
-        return queryset.distinct()
+        queryset = Stream.objects.filter(filter_condition).distinct()
+        return queryset
     
     def get_serializer_class(self):
         return StreamSerializer
@@ -249,8 +265,13 @@ class StreamMembershipViewSet (ModelViewSet):
                 # memberships that this user has or are part of the streams this user is part of
                 filter_condition = Q(member=profile) | Q(stream__members__member=profile)
         # the filter condition might create duplicates so make sure to add distinct at the end
-        return StreamMembership.objects.filter(filter_condition).distinct()
-    
+        queryset = StreamMembership.objects\
+                    .select_related("stream", "stream__creator",\
+                                    "stream__creator__user", "member",\
+                                    "member__user")\
+                    .filter(filter_condition).distinct()
+        return queryset
+
     def get_serializer_class(self):
         return StreamMembershipSerializer
     
@@ -292,17 +313,57 @@ class NoteViewSet (ModelViewSet):
 
 class TextNoteViewSet (ModelViewSet):
     permission_classes = [IsAuthenticated]
+    
     def get_queryset(self):
+        # get user making the request
         user = self.request.user
-        return TextNote.objects.filter(note_id=self.kwargs['note_pk'])
+        # get the profile of this user
+        profile = UserProfile.objects.get(user=user)
+
+        try:
+            # if on .../streams/<stream_id>/notes/<note_id>/texts/ endpoint
+            filter_condition = Q(note_id=self.kwargs['note_pk']) 
+        except:
+            try:
+                # if on .../streams/<stream_id>/texts/ endpoint
+                filter_condition = Q(note__stream_id=self.kwargs['stream_pk']) 
+            except:
+                # if on the .../harmony/texts/ endpoint
+                filter_condition = Q(note__stream__members__member=profile) 
+        
+        return TextNote.objects.filter(filter_condition).distinct()
     
     def get_serializer_class(self):
         return TextNoteSerializer
     
+    def get_permissions(self):
+        # Define custom permissions based on request method
+        if self.request.method not in SAFE_METHODS:
+            self.permission_classes = [IsAuthenticated, IsNoteTakerOrReadOnly]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+    
     def perform_create(self, serializer):
+        # get user making the request
+        user = self.request.user
+        # get the profile of this user
+        profile = UserProfile.objects.get(user=user)
+
         with transaction.atomic():
-            note = Note.objects.get(id=self.kwargs['note_pk'])
+            try:
+                # get note if on on .../streams/<stream_id>/notes/<note_id>/texts/ endpoint
+                note = Note.objects.get(id=self.kwargs['note_pk'])
+            except:
+                try:
+                    # create note if on .../streams/<stream_id>/texts/ endpoint
+                    stream = Stream.objects.get(id=self.kwargs['stream_pk'])
+                    note = Note.objects.create(stream=stream, taker=profile)
+                except:
+                    pass
+            # perform saving
             serializer.save(note=note)
+
     
 # end of TextNoteViewSet
 

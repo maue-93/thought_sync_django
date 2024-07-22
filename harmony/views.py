@@ -26,7 +26,6 @@ from .models import UserProfile, Synch, SynchMembership, Stream,\
 class UserProfileViewSet (CreateModelMixin, RetrieveModelMixin, ListModelMixin, GenericViewSet): 
     permission_classes = [IsAuthenticated]
     def get_queryset(self): 
-        # only the user's profile
         return UserProfile.objects.select_related("user").all()
     
     def get_serializer_class(self):
@@ -38,16 +37,18 @@ class UserProfileViewSet (CreateModelMixin, RetrieveModelMixin, ListModelMixin, 
 
     @action(detail=False, methods=['get', 'patch', 'put'], url_path='me', url_name='me')
     def me(self, request):
-        user_profile = self.get_queryset().filter(user=request.user).first()
-        if not user_profile:
+        user = self.request.user
+        profile = UserProfile.objects.get_or_create(user=user)
+
+        if not profile:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if request.method == 'GET':
-            serializer = self.get_serializer(user_profile)
+            serializer = self.get_serializer(profile)
             return Response(serializer.data)
         
         elif request.method in ['PUT', 'PATCH']:
-            serializer = self.get_serializer(user_profile, data=request.data, partial=request.method == 'PATCH')
+            serializer = self.get_serializer(profile, data=request.data, partial=request.method == 'PATCH')
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)

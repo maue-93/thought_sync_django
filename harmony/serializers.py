@@ -45,8 +45,8 @@ class SynchMembershipSerializer (serializers.ModelSerializer):
 
     class Meta:
         model = models.SynchMembership
-        fields = ["id","synch", "member", "username"]
-        read_only_fields = ["id", "synch", "member"]
+        fields = ["id", "synch_id", "created_at", "synch", "member", "username"]
+        read_only_fields = ["id", "synch_id", "created_at", "synch", "member"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):

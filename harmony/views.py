@@ -38,7 +38,7 @@ class UserProfileViewSet (CreateModelMixin, RetrieveModelMixin, ListModelMixin, 
     @action(detail=False, methods=['get', 'patch', 'put'], url_path='me', url_name='me')
     def me(self, request):
         user = self.request.user
-        profile = UserProfile.objects.get_or_create(user=user)
+        profile = UserProfile.objects.get(user=user)
 
         if not profile:
             return Response(status=status.HTTP_404_NOT_FOUND)

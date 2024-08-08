@@ -77,12 +77,16 @@ class StreamMembershipSerializer (serializers.ModelSerializer):
     stream = StreamSerializer(read_only=True)
     member = UserProfileSerializer(read_only=True)
     username = serializers.CharField(write_only=True)
+    synch_id = serializers.SerializerMethodField()
 
     class Meta:
         model = models.StreamMembership
-        fields = ['id', "stream_id", "stream", "member", "order", "status", "username", "created_at", "updated_at"]
-        read_only_fields = ["id", "stream_id", "stream", "member", "created_at", "updated_at"]
+        fields = ['id', "stream_id", "synch_id", "stream", "member", "order", "status", "username", "created_at", "updated_at"]
+        read_only_fields = ["id", "stream_id", "synch_id", "stream", "member", "created_at", "updated_at"]
 
+    def get_synch_id (self, obj):
+        return obj.stream.synch.id
+    
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):
         username = validated_data.pop('username')

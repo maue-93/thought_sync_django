@@ -45,8 +45,8 @@ class SynchMembershipSerializer (serializers.ModelSerializer):
 
     class Meta:
         model = models.SynchMembership
-        fields = ["id", "synch_id", "created_at", "synch", "member", "username"]
-        read_only_fields = ["id", "synch_id", "created_at", "synch", "member"]
+        fields = ["id", "synch_id", "created_at", "updated_at", "synch", "member", "username"]
+        read_only_fields = ["id", "synch_id", "created_at", "updated_at", "synch", "member"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):
@@ -80,8 +80,8 @@ class StreamMembershipSerializer (serializers.ModelSerializer):
 
     class Meta:
         model = models.StreamMembership
-        fields = ['id', "stream", "member", "order", "status", "username", "created_at", "updated_at"]
-        read_only_fields = ["id", "stream", "member", "created_at", "updated_at"]
+        fields = ['id', "stream_id", "stream", "member", "order", "status", "username", "created_at", "updated_at"]
+        read_only_fields = ["id", "stream_id", "stream", "member", "created_at", "updated_at"]
 
     # remember that the viewset perform_create function is also overriden
     def create(self, validated_data):

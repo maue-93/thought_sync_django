@@ -214,7 +214,12 @@ class StreamViewSet (ModelViewSet):
         image_bulks_serializer = ImageNoteBulkSerializer(notes, many=True)
         # now put the text and the image bulks in one list
         stream_content = texts_serializer.data + image_bulks_serializer.data
-        return Response(stream_content)
+        # get the synch id of this stream
+        stream = Stream.objects.get(id=pk)
+        synch_id = synch_pk if synch_pk else stream.synch.id
+
+        # return the result
+        return Response({'stream_id':pk, 'synch_id':synch_id, 'content':stream_content})
     
     # get the list of all the active streams if inside a synch endpoint
     @action(detail=False, methods=['get'], url_path='my_active', url_name='my_active')

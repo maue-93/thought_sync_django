@@ -186,8 +186,8 @@ DJOSER = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_PORT = 000
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'morazare@lafayette.edu' 
-EMAIL_HOST_PASSWORD = 'kobqbpcpthiaqrqs'  # Use App Password if you have 2-Step Verification enabled
+EMAIL_HOST_USER = 'randomemail@gmail.edu' 
+EMAIL_HOST_PASSWORD = 'anotherrandom'  # Use App Password if you have 2-Step Verification enabled
 
